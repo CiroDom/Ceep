@@ -44,10 +44,17 @@ class NotaRepository(
     }
 
     suspend fun sincroniza(){
+        val notasDesativ = dao.buscaNotasDesativ().first()
         val notasNaoSincro = dao.buscaNotasNaoSincro().first()
-        notasNaoSincro.forEach { naoSincronizadas ->
-            salva(naoSincronizadas)
+
+        notasDesativ.forEach { desativada ->
+            remove(desativada.id)
         }
+
+        notasNaoSincro.forEach { naoSincronizada ->
+            salva(naoSincronizada)
+        }
+
         atualizaTodas()
     }
 

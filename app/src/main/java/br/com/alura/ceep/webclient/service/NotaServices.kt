@@ -22,6 +22,6 @@ interface NotaServices {
     suspend fun remove(
         @Path("id")
         id: String,
-    ): Response<Void>
+    )
 
 }
