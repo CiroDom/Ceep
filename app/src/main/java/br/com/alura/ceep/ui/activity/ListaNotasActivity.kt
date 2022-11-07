@@ -11,7 +11,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import br.com.alura.ceep.database.AppDatabase
 import br.com.alura.ceep.databinding.ActivityListaNotasBinding
 import br.com.alura.ceep.extensions.vaiPara
+import br.com.alura.ceep.repository.NotaRepository
 import br.com.alura.ceep.ui.recyclerview.adapter.ListaNotasAdapter
+import br.com.alura.ceep.webclient.NotaWebClient
 import kotlinx.coroutines.launch
 
 class ListaNotasActivity : AppCompatActivity() {
@@ -22,8 +24,11 @@ class ListaNotasActivity : AppCompatActivity() {
     private val adapter by lazy {
         ListaNotasAdapter(this)
     }
-    private val dao by lazy {
-        AppDatabase.instancia(this).notaDao()
+    private val repositorio by lazy {
+        NotaRepository(
+            AppDatabase.instancia(this).notaDao(),
+            NotaWebClient()
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,10 +37,14 @@ class ListaNotasActivity : AppCompatActivity() {
         configuraFab()
         configuraRecyclerView()
         lifecycleScope.launch {
+            launch {
+                repositorio.sincroniza()
+            }
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 buscaNotas()
             }
         }
+//        retrofitSemCoroutines()
     }
 
     private fun configuraFab() {
@@ -56,7 +65,7 @@ class ListaNotasActivity : AppCompatActivity() {
     }
 
     private suspend fun buscaNotas() {
-        dao.buscaTodas()
+        repositorio.buscaTodas()
             .collect { notasEncontradas ->
                 binding.activityListaNotasMensagemSemNotas.visibility =
                     if (notasEncontradas.isEmpty()) {
@@ -69,4 +78,33 @@ class ListaNotasActivity : AppCompatActivity() {
                     }
             }
     }
+
+    private fun retrofitSemCoroutines() {
+//        val call: Call<List<NotaResposta>> = RetrofitInicializador().notaService.buscaTodas()
+//        //        lifecycleScope.launch(IO) {
+//        //            val resposta: Response<List<NotaResposta>> = call.execute()
+//        //            resposta.body()?.let{ notasResposta ->
+//        //                val notas: List<Nota> = notasResposta.map {
+//        //                    it.nota
+//        //                }
+//        //            }
+//        //        }
+//        call.enqueue(object : Callback<List<NotaResposta>?> {
+//            override fun onResponse(
+//                call: Call<List<NotaResposta>?>,
+//                resposta: Response<List<NotaResposta>?>
+//            ) {
+//                resposta.body()?.let { notasResposta ->
+//                    val notas: List<Nota> = notasResposta.map {
+//                        it.nota
+//                    }
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<List<NotaResposta>?>, t: Throwable) {
+//                TODO("Not yet implemented")
+//            }
+//        })
+    }
+
 }
